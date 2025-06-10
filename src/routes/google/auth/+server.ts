@@ -8,7 +8,8 @@ export const GET: RequestHandler = () => {
     const oAuth2Client = new google.auth.OAuth2(
         env.GOOGLE_CLIENT_ID,
         env.GOOGLE_CLIENT_SECRET,
-        `http://localhost:5173/google/callback`
+        //`http://localhost:5173/google/callback`
+        "https://1349666074253197394.discordsays.com/google/callback"
         );
 
         // ${env.GOOGLE_BASE_URL}
