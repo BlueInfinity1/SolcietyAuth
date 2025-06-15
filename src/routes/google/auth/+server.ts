@@ -4,20 +4,22 @@ import { google } from 'googleapis';
 
 export const GET: RequestHandler = ({ url }) => {
   const sessionId = url.searchParams.get('session');
-  if (!sessionId) return new Response('Missing session ID', { status: 400 });
-
+  if (!sessionId) return new Response('Missing session', { status: 400 });
+  
   const oAuth2Client = new google.auth.OAuth2(
     env.GOOGLE_CLIENT_ID,
     env.GOOGLE_CLIENT_SECRET,
-    `https://solciety-auth.vercel.app/google/callback` //?session=${sessionId}`
+    'https://solciety-auth.vercel.app/google/callback' // ✅ fixed, static callback
   );
-
+  
   const urlToGoogle = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/presentations.readonly']
+    scope: ['https://www.googleapis.com/auth/presentations.readonly'],
+    state: sessionId // ✅ embed sessionId here
   });
-
+  
   return Response.redirect(urlToGoogle, 302);
+  
 };
 
 
