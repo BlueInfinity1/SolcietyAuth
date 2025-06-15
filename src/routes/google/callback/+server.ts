@@ -30,6 +30,10 @@ export const GET: RequestHandler = async ({ url }) => {
       'https://solciety-auth.vercel.app/google/callback'
     );
 
+
+    console.log("OAuth2Client: get token with the code " + code + " ");
+    console.log("OAuth2Client: " + await oAuth2Client.getToken(code));
+
     debugOutput += "Phase E: Attempting to exchange code " + code + "for tokens...\n with " + env.GOOGLE_CLIENT_ID + " and " + env.GOOGLE_CLIENT_SECRET + "\n";
     const { tokens } = await oAuth2Client.getToken(code);
 
@@ -51,6 +55,8 @@ export const GET: RequestHandler = async ({ url }) => {
     debugOutput += "Phase G: Token exchange failed\n";
     debugOutput += `Error: ${err?.message || 'Unknown error'}\n`;
     debugOutput += `Raw:\n${JSON.stringify(err, Object.getOwnPropertyNames(err), 2)}\n`;
+
+    console.log("OAuth Failed: " + debugOutput);
 
     return new Response(`
       <html><body>
