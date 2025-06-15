@@ -13,7 +13,7 @@ export const GET: RequestHandler = ({ url }) => {
   );
   
   const urlToGoogle = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
+    access_type: 'online',
     scope: ['https://www.googleapis.com/auth/presentations.readonly'],
     //state: sessionId // ✅ embed sessionId here,
   });
