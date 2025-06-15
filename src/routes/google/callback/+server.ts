@@ -32,7 +32,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 
     console.log("OAuth2Client: get token with the code " + code + " ");
-    console.log("OAuth2Client: " + await oAuth2Client.getToken(code));
+    //console.log("OAuth2Client: " + await oAuth2Client.getToken(code));
 
     debugOutput += "Phase E: Attempting to exchange code " + code + "for tokens...\n with " + env.GOOGLE_CLIENT_ID + " and " + env.GOOGLE_CLIENT_SECRET + "\n";
     const { tokens } = await oAuth2Client.getToken(code);
