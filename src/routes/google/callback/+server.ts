@@ -6,7 +6,7 @@ const sessionStore = new Map<string, { status: string; accessToken?: string; exp
 
 export const GET: RequestHandler = async ({ url }) => {
   const code = url.searchParams.get('code');
-  const sessionId = url.searchParams.get('state');
+  const sessionId = "Mock"; // url.searchParams.get('state');
 
   console.log("[OAuth Callback] Received:", { code, sessionId });
 

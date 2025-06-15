@@ -15,7 +15,7 @@ export const GET: RequestHandler = ({ url }) => {
   const urlToGoogle = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: ['https://www.googleapis.com/auth/presentations.readonly'],
-    state: sessionId // ✅ embed sessionId here,
+    //state: sessionId // ✅ embed sessionId here,
   });
 
   console.log("URL to Google:", urlToGoogle);
