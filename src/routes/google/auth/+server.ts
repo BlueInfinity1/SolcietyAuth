@@ -3,7 +3,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { google } from 'googleapis';
 
 export const GET: RequestHandler = ({ url }) => {
-  const sessionId = url.searchParams.get('session');
+  const sessionId = "mockSession"; //url.searchParams.get('session');
   if (!sessionId) return new Response('Missing session', { status: 400 });
   
   const oAuth2Client = new google.auth.OAuth2(
