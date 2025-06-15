@@ -30,7 +30,7 @@ export const GET: RequestHandler = async ({ url }) => {
       'https://solciety-auth.vercel.app/google/callback'
     );
 
-    debugOutput += "Phase E: Attempting to exchange code for tokens...\n";
+    debugOutput += "Phase E: Attempting to exchange code " + code + "for tokens...\n with " + env.GOOGLE_CLIENT_ID + " and " + env.GOOGLE_CLIENT_SECRET + "\n";
     const { tokens } = await oAuth2Client.getToken(code);
 
     debugOutput += "Phase F: Token exchange succeeded\n";
