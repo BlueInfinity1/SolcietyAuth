@@ -9,7 +9,7 @@ export const GET: RequestHandler = ({ url }) => {
   const oAuth2Client = new google.auth.OAuth2(
     env.GOOGLE_CLIENT_ID,
     env.GOOGLE_CLIENT_SECRET,
-    `https://solciety-auth.vercel.app/google/callback?session=${sessionId}`
+    `https://solciety-auth.vercel.app/google/callback` //?session=${sessionId}`
   );
 
   const urlToGoogle = oAuth2Client.generateAuthUrl({
