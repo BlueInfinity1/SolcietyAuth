@@ -9,14 +9,16 @@ export const GET: RequestHandler = ({ url }) => {
   const oAuth2Client = new google.auth.OAuth2(
     env.GOOGLE_CLIENT_ID,
     env.GOOGLE_CLIENT_SECRET,
-    'https://solciety-auth.vercel.app/google/callback' // ✅ fixed, static callback
+    'https://solciety-auth.vercel.app/google/callback' // ✅ fixed, static callback,
   );
   
   const urlToGoogle = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: ['https://www.googleapis.com/auth/presentations.readonly'],
-    state: sessionId // ✅ embed sessionId here
+    state: sessionId // ✅ embed sessionId here,
   });
+
+  console.log("URL to Google:", urlToGoogle);
   
   return Response.redirect(urlToGoogle, 302);
   

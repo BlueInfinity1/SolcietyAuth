@@ -29,6 +29,7 @@ export const GET: RequestHandler = async ({ url }) => {
   );
 
   try {
+    console.log("Exchange for tokens the following code:", code);
     const { tokens } = await oAuth2Client.getToken(code);
 
     sessionStore.set(sessionId, {
