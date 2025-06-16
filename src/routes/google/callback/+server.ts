@@ -5,6 +5,9 @@ import { google } from 'googleapis';
 export const GET: RequestHandler = async ({ url }) => {
   let debugOutput = "OAuth Callback Phase Log:\n";
 
+  const serverTime = new Date().toISOString();
+  debugOutput += `\nPhase T: Server clock at callback: ${serverTime}\n`;
+
   try {
     debugOutput += "Phase A: Reached handler\n";
 
