@@ -1,6 +1,5 @@
 import { env } from "$env/dynamic/private";
 import type { RequestHandler } from '@sveltejs/kit';
-import { google } from 'googleapis';
 
 export const GET: RequestHandler = async ({ url }) => {
   let debugOutput = "OAuth Callback Phase Log:\n";
@@ -26,30 +25,41 @@ export const GET: RequestHandler = async ({ url }) => {
       `, { headers: { 'Content-Type': 'text/html' }, status: 400 });
     }
 
-    debugOutput += "Phase D: Initializing OAuth2 client\n";
-    const oAuth2Client = new google.auth.OAuth2(
-      env.GOOGLE_CLIENT_ID,
-      env.GOOGLE_CLIENT_SECRET,
-      'https://solciety-auth.vercel.app/google/callback'
-    );
+    debugOutput += "Phase D: Preparing POST request to Google token endpoint\n";
 
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({
+        code: code,
+        client_id: env.GOOGLE_CLIENT_ID!,
+        client_secret: env.GOOGLE_CLIENT_SECRET!,
+        redirect_uri: "https://solciety-auth.vercel.app/google/callback",
+        grant_type: "authorization_code"
+      })
+    });
 
-    console.log("OAuth2Client: get token with the code " + code + " ");
-    //console.log("OAuth2Client: " + await oAuth2Client.getToken(code));
+    const tokenData = await tokenResponse.json();
 
-    debugOutput += "Phase E: Attempting to exchange code " + code + "for tokens...\n with " + env.GOOGLE_CLIENT_ID + " and " + env.GOOGLE_CLIENT_SECRET + "\n";
-    const { tokens } = await oAuth2Client.getToken(code);
+    if (!tokenResponse.ok) {
+      debugOutput += `Phase E: Google returned an error (status ${tokenResponse.status})\n`;
+      debugOutput += `Raw response:\n${JSON.stringify(tokenData, null, 2)}\n`;
+      throw new Error(tokenData.error_description || "Unknown error from Google");
+    }
 
     debugOutput += "Phase F: Token exchange succeeded\n";
-    debugOutput += `Access Token: ${tokens.access_token}\n`;
-    debugOutput += `Expiry: ${tokens.expiry_date}\n`;
+    debugOutput += `Access Token: ${tokenData.access_token}\n`;
+    debugOutput += `Expires In: ${tokenData.expires_in}\n`;
+    debugOutput += `Refresh Token: ${tokenData.refresh_token || '(not returned)'}\n`;
 
     return new Response(`
       <html><body>
         <h1>Authentication successful</h1>
-        <p>You may close this tab.</p>
+        <p>You may now return to the game and close this tab.</p>
         <pre>${debugOutput}</pre>
-        <pre>Raw Tokens:\n${JSON.stringify(tokens, null, 2)}</pre>
+        <pre>Raw Token Response:\n${JSON.stringify(tokenData, null, 2)}</pre>
         <script>window.close();</script>
       </body></html>
     `, { headers: { 'Content-Type': 'text/html' } });
@@ -57,9 +67,8 @@ export const GET: RequestHandler = async ({ url }) => {
   } catch (err: any) {
     debugOutput += "Phase G: Token exchange failed\n";
     debugOutput += `Error: ${err?.message || 'Unknown error'}\n`;
-    debugOutput += `Raw:\n${JSON.stringify(err, Object.getOwnPropertyNames(err), 2)}\n`;
 
-    console.log("OAuth Failed: " + debugOutput);
+    console.log("OAuth Failed:\n" + debugOutput);
 
     return new Response(`
       <html><body>
