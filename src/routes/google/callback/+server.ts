@@ -5,7 +5,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 export const GET: RequestHandler = async ({ url }) => {
   try {
     const code = url.searchParams.get('code');
-    const sessionId =  url.searchParams.get('sessionId');
+    const sessionId =  url.searchParams.get('state');
 
     if (!code || !sessionId) {
       return new Response(`
