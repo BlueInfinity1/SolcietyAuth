@@ -7,7 +7,7 @@ export const GET: RequestHandler = async ({ url }) => {
     return new Response('Missing session', {
       status: 400,
       headers: {
-        'Access-Control-Allow-Origin': '*' // Add this line, change to ***.discordsays in prod
+        'Access-Control-Allow-Origin': '*'
       }
     });
   }
@@ -15,10 +15,16 @@ export const GET: RequestHandler = async ({ url }) => {
   const session = sessionStore.get(sessionId);
   const isValid = session && Date.now() < session.expiresAt;
 
-  return new Response(JSON.stringify({ status: isValid ? 'authenticated' : 'pending' }), {
+  const responsePayload = {
+    status: isValid ? 'authenticated' : 'pending',
+    accessToken: isValid ? session!.accessToken : null,
+    expiresAt: isValid ? session!.expiresAt : null
+  };
+
+  return new Response(JSON.stringify(responsePayload), {
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*' // Add this line, change to ***.discordsays in prod
+      'Access-Control-Allow-Origin': '*' // Replace with your domain in prod
     }
   });
 };
