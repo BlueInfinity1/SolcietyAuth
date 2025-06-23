@@ -43,12 +43,13 @@ export const GET: RequestHandler = async ({ url }) => {
 
   try {
     const session = await client.createSession(code, codeVerifier);
-    const tokens = session.tokens;
+    const tokens = await session.getUserTokens(); // safer and explicit
 
     const accessToken = tokens.access_token;
     const expiresIn = tokens.expires_in ?? 3600;
     const expiresAt = Date.now() + expiresIn * 1000;
 
+    // Overwrite with only valid session data
     sessionStore.set(sessionId, {
       accessToken,
       expiresAt
