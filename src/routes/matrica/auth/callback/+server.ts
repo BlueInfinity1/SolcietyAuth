@@ -1,16 +1,39 @@
-// src/routes/matrica/auth/callback/+server.ts
 import { MatricaOAuthClient } from '@matrica/oauth-sdk';
 import type { RequestHandler } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { sessionStore } from '$lib/sessionStore';
 
-export const GET: RequestHandler = async ({ url, cookies }) => {
+export const GET: RequestHandler = async ({ url }) => {
   const code = url.searchParams.get('code');
-  const sessionId = cookies.get('matrica_session_id');
-  const codeVerifier = cookies.get('matrica_code_verifier');
+  const sessionId = url.searchParams.get('sessionId');
 
-  if (!code || !sessionId || !codeVerifier)
-    return new Response('Missing data', { status: 400 });
+  if (!code || !sessionId) {
+    const html = `
+      <!DOCTYPE html>
+      <html><body>
+        <h2>Missing required query params</h2>
+        <p><strong>code:</strong> ${code ?? 'null'}</p>
+        <p><strong>sessionId:</strong> ${sessionId ?? 'null'}</p>
+      </body></html>
+    `;
+    return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
+  }
+
+  const sessionData = sessionStore.get(sessionId);
+  const codeVerifier = sessionData && (sessionData as any).codeVerifier;
+
+  if (!codeVerifier) {
+    const html = `
+      <!DOCTYPE html>
+      <html><body>
+        <h2>Session data missing or invalid</h2>
+        <p><strong>sessionId:</strong> ${sessionId}</p>
+        <p><strong>codeVerifier:</strong> ${codeVerifier ?? 'null'}</p>
+        <p><strong>sessionData:</strong> ${JSON.stringify(sessionData)}</p>
+      </body></html>
+    `;
+    return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
+  }
 
   const client = new MatricaOAuthClient({
     clientId:     env.MATRICA_CLIENT_ID,
@@ -20,7 +43,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 
   try {
     const session = await client.createSession(code, codeVerifier);
-    const tokens = session["tokens"];
+    const tokens = session.tokens;
 
     const accessToken = tokens.access_token;
     const expiresIn = tokens.expires_in ?? 3600;
@@ -33,11 +56,6 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 
     console.log('[MatricaCallback] Token stored for session:', sessionId);
 
-    // Optional: clear temp cookies
-    cookies.delete('matrica_code_verifier', { path: '/' });
-    cookies.delete('matrica_session_id', { path: '/' });
-
-    // Notify parent window and close
     const html = `
       <!DOCTYPE html>
       <html><body>
@@ -47,13 +65,19 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
         </script>
       </body></html>
     `;
-
     return new Response(html, {
       headers: { 'Content-Type': 'text/html' }
     });
 
   } catch (err) {
     console.error('[MatricaCallback] Session creation failed:', err);
-    return new Response('Auth failed', { status: 500 });
+    const html = `
+      <!DOCTYPE html>
+      <html><body>
+        <h2>Session creation failed</h2>
+        <p><strong>Error:</strong> ${String(err)}</p>
+      </body></html>
+    `;
+    return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
   }
 };
