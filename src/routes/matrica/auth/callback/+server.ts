@@ -8,32 +8,34 @@ export const GET: RequestHandler = async ({ url }) => {
   const sessionId = url.searchParams.get('state');
 
   if (!code || !sessionId) {
-    const html = `
-      <!DOCTYPE html>
+    return new Response(`
       <html><body>
-        <h2>Missing required query params</h2>
+        <h1>OAuth Error</h1>
+        <p>Missing <code>code</code> or <code>sessionId</code>.</p>
         <p><strong>code:</strong> ${code ?? 'null'}</p>
         <p><strong>sessionId:</strong> ${sessionId ?? 'null'}</p>
       </body></html>
-    `;
-    return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
+    `, {
+      headers: { 'Content-Type': 'text/html' },
+      status: 400
+    });
   }
 
   const sessionData = sessionStore.get(sessionId);
-  console.log("CALLBACK: SessionData ", sessionData);
   const codeVerifier = sessionData && (sessionData as any).codeVerifier;
 
   if (!codeVerifier) {
-    const html = `
-      <!DOCTYPE html>
+    return new Response(`
       <html><body>
-        <h2>Session data missing or invalid</h2>
-        <p><strong>sessionId:</strong> ${sessionId}</p>
-        <p><strong>codeVerifier:</strong> ${codeVerifier ?? 'null'}</p>
-        <p><strong>sessionData:</strong> ${JSON.stringify(sessionData)}</p>
+        <h1>OAuth Error</h1>
+        <p><strong>codeVerifier</strong> not found in sessionStore.</p>
+        <pre>sessionId: ${sessionId}</pre>
+        <pre>sessionData: ${JSON.stringify(sessionData)}</pre>
       </body></html>
-    `;
-    return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
+    `, {
+      headers: { 'Content-Type': 'text/html' },
+      status: 400
+    });
   }
 
   const client = new MatricaOAuthClient({
@@ -44,13 +46,12 @@ export const GET: RequestHandler = async ({ url }) => {
 
   try {
     const session = await client.createSession(code, codeVerifier);
-    const tokens = session["tokens"]; //await session.getUserTokens(); // safer and explicit
+    const tokens = session["tokens"]; // <- Matrica requires bracket access
 
     const accessToken = tokens.access_token;
     const expiresIn = tokens.expires_in ?? 3600;
     const expiresAt = Date.now() + expiresIn * 1000;
 
-    // Overwrite with only valid session data
     sessionStore.set(sessionId, {
       accessToken,
       expiresAt
@@ -58,28 +59,26 @@ export const GET: RequestHandler = async ({ url }) => {
 
     console.log('[MatricaCallback] Token stored for session:', sessionId);
 
-    const html = `
-      <!DOCTYPE html>
+    return new Response(`
       <html><body>
-        <script>
-          window.opener?.postMessage('oauth_success', window.location.origin);
-          window.close();
-        </script>
+        <h1>Authentication successful</h1>
+        <p>You may now return to the game and close this tab.</p>
+        <script>window.close();</script>
       </body></html>
-    `;
-    return new Response(html, {
+    `, {
       headers: { 'Content-Type': 'text/html' }
     });
 
   } catch (err) {
     console.error('[MatricaCallback] Session creation failed:', err);
-    const html = `
-      <!DOCTYPE html>
+    return new Response(`
       <html><body>
-        <h2>Session creation failed</h2>
-        <p><strong>Error:</strong> ${String(err)}</p>
+        <h1>Authentication failed</h1>
+        <p>${String(err)}</p>
       </body></html>
-    `;
-    return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
+    `, {
+      headers: { 'Content-Type': 'text/html' },
+      status: 500
+    });
   }
 };
