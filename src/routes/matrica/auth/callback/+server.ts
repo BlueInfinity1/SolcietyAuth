@@ -43,7 +43,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
   try {
     const session = await client.createSession(code, codeVerifier);
-    const tokens = await session.getUserTokens(); // safer and explicit
+    const tokens = session["tokens"];//await session.getUserTokens(); // safer and explicit
 
     const accessToken = tokens.access_token;
     const expiresIn = tokens.expires_in ?? 3600;

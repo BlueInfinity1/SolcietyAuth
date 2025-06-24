@@ -16,14 +16,14 @@ export const GET: RequestHandler = async ({ url }) => {
   });
 
   const scopes = 'profile wallets nfts';
-  const { url: authUrl, codeVerifier } = await client.getAuthorizationUrl(scopes);
+  const { url: baseAuthUrl, codeVerifier } = await client.getAuthorizationUrl(scopes);
 
-  // Store the codeVerifier in sessionStore using the sessionId
+  // Append sessionId as `state` parameter
+  const authUrl = `${baseAuthUrl}&state=${encodeURIComponent(sessionId)}`;
+
   sessionStore.set(sessionId, {
-    accessToken: '',       // not yet available
-    expiresAt: 0,          // not yet available
-    codeVerifier           // custom field temporarily needed for callback
-  } as any); // Type-cast because SessionData originally doesn't have codeVerifier
+    codeVerifier
+  } as any); // Temporarily store codeVerifier until callback
 
   return Response.redirect(authUrl, 302);
 };
