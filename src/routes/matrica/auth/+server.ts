@@ -21,11 +21,13 @@ export const GET: RequestHandler = async ({ url }) => {
   // Append sessionId as `state` parameter
   const authUrl = `${baseAuthUrl}&state=${encodeURIComponent(sessionId)}`;
 
-  console.log("Redirect to " + authUrl);
+  console.log("Store codeVerifier " + codeVerifier + " Redirect to " + authUrl);
 
   sessionStore.set(sessionId, {
     codeVerifier
   } as any); // Temporarily store codeVerifier until callback
+
+  console.log("sessionStore for sessionId: ", sessionId);
 
   return Response.redirect(authUrl, 302);
 };

@@ -20,6 +20,7 @@ export const GET: RequestHandler = async ({ url }) => {
   }
 
   const sessionData = sessionStore.get(sessionId);
+  console.log("CALLBACK: SessionData ", sessionData);
   const codeVerifier = sessionData && (sessionData as any).codeVerifier;
 
   if (!codeVerifier) {
