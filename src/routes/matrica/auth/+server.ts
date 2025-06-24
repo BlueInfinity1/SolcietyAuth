@@ -12,14 +12,14 @@ export const GET: RequestHandler = async ({ url }) => {
   const client = new MatricaOAuthClient({
     clientId:     env.MATRICA_CLIENT_ID,
     clientSecret: env.MATRICA_CLIENT_SECRET,
-    redirectUri:  'https://solciety-auth.vercel.app/matrica/auth/callback'
+    redirectUri:  'https://solciety-auth.vercel.app/matrica/auth/callback?sessionId=' + sessionId
   });
 
   const scopes = 'profile wallets nfts';
   const { url: baseAuthUrl, codeVerifier } = await client.getAuthorizationUrl(scopes);
 
   // Append sessionId as `state` parameter
-  const authUrl = `${baseAuthUrl}&state=${encodeURIComponent(sessionId)}`;
+  const authUrl = baseAuthUrl;
 
   sessionStore.set(sessionId, {
     codeVerifier
